@@ -1290,12 +1290,12 @@ bot.onText(/\/start|play/i, async (msg) => {
 
   await bot.sendMessage(
     userId,
-    `🤑 Welcome to GoFundMe (meme edition)!\n\n💰 Prize Pool: ${treasurySUNO.toLocaleString()} SUNO\n🎰 Bonus Jackpot: +${treasuryBonus.toLocaleString()} SUNO (1/500 chance)${timeMessage}\n\n📍 Join the chaos: https://t.me/${CHANNEL}\n\n😈 Pick your hustle:`,
+    `💸 Welcome to GoFundMe (but make it degenerate)\n\n💰 Prize Pool: ${treasurySUNO.toLocaleString()} SUNO\n🎰 Jackpot: +${treasuryBonus.toLocaleString()} SUNO (1/500 chance)${timeMessage}\n\n📍 Watch the trainwreck: https://t.me/${CHANNEL}\n\n🎭 Choose your grift:`,
     {
       reply_markup: {
         inline_keyboard: [
-          [{ text: "� Share Sob Story & Get Paid", callback_data: `start_story_${userId}` }],
-          [{ text: "🤝 Vote for Sadness & Get Paid", callback_data: `start_vote_${userId}` }]
+          [{ text: "😭 Weaponize My Trauma for Profit", callback_data: `start_story_${userId}` }],
+          [{ text: "🗳️ Judge Others & Get Paid", callback_data: `start_vote_${userId}` }]
         ]
       }
     }
@@ -1334,7 +1334,7 @@ bot.on("message", async (msg) => {
       
       await bot.sendMessage(
         userId,
-        `👋 Hi! Welcome to GoFundMe (but make it memes)!\n\n🎮 To play, type:\n/start\n\nThen choose:\n😭 Share your sob story & compete\n🤝 Vote for tragic tales & earn\n\n💰 It's basically charity with extra steps${phaseInfo}`
+        `👋 Welcome to GoFundMe (no really, we're that desperate)\n\n🎮 To monetize your misery:\n/start\n\nThen pick:\n😭 Exploit your trauma for crypto\n🗳️ Judge other people's suffering for profit\n\n💀 It's late-stage capitalism with memes${phaseInfo}`
       );
       return;
     }
@@ -1345,18 +1345,18 @@ bot.on("message", async (msg) => {
     
     if (charCount > MAX_STORY_LENGTH) {
       const overBy = charCount - MAX_STORY_LENGTH;
-      await bot.sendMessage(
-        userId,
-        `⚠️ Story too long!\n\n📏 Your story: ${charCount} characters\n✅ Maximum: ${MAX_STORY_LENGTH} characters\n❌ Over by: ${overBy} characters\n\nPlease shorten your story and try again (about 3 sentences).`
-      );
+        await bot.sendMessage(
+          userKey,
+          `😭 Time to Weaponize Your Suffering!\n\n✍️ Craft your sob story (max ${MAX_STORY_LENGTH} characters). Make it tragic. Make it believable. Make it profitable.\n\nType your tale of woe and hit send.\n\n⏱️ You have ${Math.ceil(PAYMENT_TIMEOUT / 60000)} minutes before your trauma expires.`
+        );
       return;
     }
 
     if (charCount < 20) {
-      await bot.sendMessage(
-        userId,
-        `⚠️ Story too short!\n\n📏 Your story: ${charCount} characters\n✅ Minimum: 20 characters\n\nPlease write a bit more about why you need funds.`
-      );
+    await bot.sendMessage(
+      userId,
+      `👋 Welcome to the dystopia!\n\n🎮 To play this hellscape:\n/start\n\nThen choose:\n😭 Commodify your sadness\n🗳️ Profit from others' misery\n\n💀 Everyone's a winner in the misery economy${phaseInfo}`
+    );
       return;
     }
 
