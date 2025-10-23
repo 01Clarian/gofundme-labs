@@ -1559,7 +1559,7 @@ app.listen(PORT, async () => {
   console.log(`🏦 Actual treasury: ${actualTreasuryBalance.toLocaleString()} SUNO`);
   console.log(`🎰 Bonus prize: ${calculateTreasuryBonus().toLocaleString()} SUNO (${(getTreasuryBonusPercentage() * 100).toFixed(0)}%)`);
   
-  const webhookUrl = `https://gofundme-bot.onrender.com/webhook/${token}`;
+  const webhookUrl = `https://gofundme-o0cn.onrender.com/webhook/${token}`;
   try {
     await bot.deleteWebHook();
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -1601,7 +1601,7 @@ setInterval(() => {
 // Ping self every 10 minutes to keep service awake on free tier
 setInterval(async () => {
   try {
-    const response = await fetch('https://gofundme-bot.onrender.com/');
+    const response = await fetch('https://gofundme-o0cn.onrender.com/');
     console.log('🏓 Self-ping successful - service kept awake');
   } catch (e) {
     console.log('⚠️ Self-ping failed:', e.message);
