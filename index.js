@@ -368,116 +368,92 @@ async function checkIfBonded() {
 // === PUMP.FUN BUY (Using PumpPortal API) ===
 // Documentation: https://pumpportal.fun/api/trade-local
 async function buyOnPumpFun(solAmount) {
-  const maxRetries = 3;
-  let lastError;
-  
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  try {
+    console.log(`🚀 Starting pump.fun buy with PumpPortal API: ${solAmount.toFixed(4)} SOL`);
+    console.log(`📍 Buying to treasury, will split SUNO after...`);
+    
+    // Get treasury balance BEFORE purchase for accurate tracking
+    const treasuryTokenAccount = await getAssociatedTokenAddress(
+      TOKEN_MINT,
+      TREASURY_KEYPAIR.publicKey
+    );
+    
+    let balanceBefore = 0;
     try {
-      console.log(`🚀 Starting pump.fun buy with PumpPortal API (attempt ${attempt}/${maxRetries}): ${solAmount.toFixed(4)} SOL`);
-      console.log(`📍 Buying to treasury, will split SUNO after...`);
-      
-      // Get treasury balance BEFORE purchase for accurate tracking
-      const treasuryTokenAccount = await getAssociatedTokenAddress(
-        TOKEN_MINT,
-        TREASURY_KEYPAIR.publicKey
-      );
-      
-      let balanceBefore = 0;
-      try {
-        const beforeBalance = await connection.getTokenAccountBalance(treasuryTokenAccount);
-        balanceBefore = Math.floor(parseFloat(beforeBalance.value.uiAmount || 0));
-        console.log(`💰 Treasury balance BEFORE: ${balanceBefore.toLocaleString()} SUNO`);
-      } catch (e) {
-        console.log(`💰 Treasury balance BEFORE: 0 SUNO (account doesn't exist yet)`);
-        balanceBefore = 0;
-      }
-      
-      // Get transaction from PumpPortal with timeout
-      console.log("📊 Getting PumpPortal transaction...");
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
-      
-      const quoteResponse = await fetch(`https://pumpportal.fun/api/trade-local`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          publicKey: TREASURY_KEYPAIR.publicKey.toBase58(),
-          action: "buy",
-          mint: TOKEN_MINT.toBase58(),
-          denominatedInSol: "true",
-          amount: solAmount,
-          slippage: 15, // Increased slippage for better success rate
-          priorityFee: 0.0002, // Increased priority fee
-          pool: "auto"  // Auto-detect pump.fun or Raydium
-        }),
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!quoteResponse.ok) {
-        const errorText = await quoteResponse.text();
-        throw new Error(`PumpPortal request failed: ${quoteResponse.status} - ${errorText}`);
-      }
-      
-      // PumpPortal returns raw binary transaction data (not base64!)
-      const txData = await quoteResponse.arrayBuffer();
-      
-      if (!txData || txData.byteLength === 0) {
-        throw new Error('Empty transaction data received from PumpPortal');
-      }
-      
-      console.log(`✅ Got transaction data (${txData.byteLength} bytes)`);
-      
-      // Deserialize and sign transaction
-      console.log("🔓 Deserializing transaction...");
-      const tx = VersionedTransaction.deserialize(new Uint8Array(txData));
-      tx.sign([TREASURY_KEYPAIR]);
-      
-      // Send transaction
-      console.log("📤 Sending buy transaction...");
-      const sig = await connection.sendRawTransaction(tx.serialize(), {
-        skipPreflight: false,
-        preflightCommitment: 'confirmed',
-        maxRetries: 3
-      });
-      
-      console.log(`📤 Transaction sent: ${sig.substring(0, 8)}...`);
-      console.log(`🔗 https://solscan.io/tx/${sig}`);
-      console.log("⏳ Confirming transaction...");
-      
-      await connection.confirmTransaction(sig, "confirmed");
-      
-      console.log(`✅ Pump.fun buy complete!`);
-      
-      // Get balance AFTER purchase
-      await new Promise(r => setTimeout(r, 3000));
-      
-      const afterBalance = await connection.getTokenAccountBalance(treasuryTokenAccount);
-      const balanceAfter = Math.floor(parseFloat(afterBalance.value.uiAmount || 0));
-      
-      const sunoReceived = balanceAfter - balanceBefore;
-      console.log(`🪙 Treasury received ${sunoReceived.toLocaleString()} SUNO`);
-      console.log(`📊 Treasury total balance: ${balanceAfter.toLocaleString()} SUNO`);
-      
-      return sunoReceived;
-      
-    } catch (err) {
-      lastError = err;
-      console.error(`❌ PumpPortal attempt ${attempt}/${maxRetries} failed: ${err.message}`);
-      
-      if (attempt < maxRetries) {
-        const waitTime = attempt * 2000; // Exponential backoff: 2s, 4s
-        console.log(`⏳ Waiting ${waitTime/1000}s before retry...`);
-        await new Promise(r => setTimeout(r, waitTime));
-      }
+      const beforeBalance = await connection.getTokenAccountBalance(treasuryTokenAccount);
+      balanceBefore = Math.floor(parseFloat(beforeBalance.value.uiAmount || 0));
+      console.log(`💰 Treasury balance BEFORE: ${balanceBefore.toLocaleString()} SUNO`);
+    } catch (e) {
+      console.log(`💰 Treasury balance BEFORE: 0 SUNO (account doesn't exist yet)`);
+      balanceBefore = 0;
     }
+    
+    // Get transaction from PumpPortal
+    console.log("📊 Getting PumpPortal transaction...");
+    const quoteResponse = await fetch(`https://pumpportal.fun/api/trade-local`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        publicKey: TREASURY_KEYPAIR.publicKey.toBase58(),
+        action: "buy",
+        mint: TOKEN_MINT.toBase58(),
+        denominatedInSol: "true",
+        amount: solAmount,
+        slippage: 10,
+        priorityFee: 0.0001,
+        pool: "auto"  // Auto-detect pump.fun or Raydium
+      })
+    });
+    
+    if (!quoteResponse.ok) {
+      const errorText = await quoteResponse.text();
+      throw new Error(`PumpPortal request failed: ${quoteResponse.status} - ${errorText}`);
+    }
+    
+    // PumpPortal returns raw binary transaction data (not base64!)
+    const txData = await quoteResponse.arrayBuffer();
+    console.log(`✅ Got transaction data (${txData.byteLength} bytes)`);
+    
+    // Deserialize and sign transaction
+    console.log("🔓 Deserializing transaction...");
+    const tx = VersionedTransaction.deserialize(new Uint8Array(txData));
+    tx.sign([TREASURY_KEYPAIR]);
+    
+    // Send transaction
+    console.log("📤 Sending buy transaction...");
+    const sig = await connection.sendRawTransaction(tx.serialize(), {
+      skipPreflight: false,
+      preflightCommitment: 'confirmed',
+      maxRetries: 3
+    });
+    
+    console.log(`📤 Transaction sent: ${sig.substring(0, 8)}...`);
+    console.log(`🔗 https://solscan.io/tx/${sig}`);
+    console.log("⏳ Confirming transaction...");
+    
+    await connection.confirmTransaction(sig, "confirmed");
+    
+    console.log(`✅ Pump.fun buy complete!`);
+    
+    // Get balance AFTER purchase
+    await new Promise(r => setTimeout(r, 3000));
+    
+    const afterBalance = await connection.getTokenAccountBalance(treasuryTokenAccount);
+    const balanceAfter = Math.floor(parseFloat(afterBalance.value.uiAmount || 0));
+    
+    const sunoReceived = balanceAfter - balanceBefore;
+    console.log(`🪙 Treasury received ${sunoReceived.toLocaleString()} SUNO`);
+    console.log(`📊 Treasury total balance: ${balanceAfter.toLocaleString()} SUNO`);
+    
+    return sunoReceived;
+    
+  } catch (err) {
+    console.error(`❌ Pump.fun buy failed: ${err.message}`);
+    console.error(err.stack);
+    throw err;
   }
-  
-  console.error(`❌ All PumpPortal attempts failed. Last error: ${lastError.message}`);
-  throw lastError;
 }
 
 // === JUPITER SWAP ===
@@ -579,7 +555,7 @@ async function buyOnJupiter(solAmount) {
   }
 }
 
-// === MARKET INTEGRATION (Uses PumpPortal API with Jupiter fallback) ===
+// === MARKET INTEGRATION (Uses PumpPortal API with auto pool detection) ===
 async function buySUNOOnMarket(solAmount) {
   try {
     console.log(`\n🔄 ========== BUYING SUNO ==========`);
@@ -588,39 +564,16 @@ async function buySUNOOnMarket(solAmount) {
     
     let sunoAmount;
     
-    // Try PumpPortal first (handles both pump.fun and Raydium automatically)
-    try {
-      console.log("🚀 Attempting PumpPortal API with auto pool detection...");
-      sunoAmount = await buyOnPumpFun(solAmount);
-      
-      if (sunoAmount > 0) {
-        console.log(`✅ PumpPortal purchase complete! ${sunoAmount.toLocaleString()} SUNO now in treasury`);
-        console.log(`🔄 ===================================\n`);
-        return sunoAmount;
-      }
-    } catch (pumpError) {
-      console.error(`⚠️ PumpPortal failed: ${pumpError.message}`);
-      console.log(`🔄 Falling back to Jupiter aggregator...`);
-      
-      // Fallback to Jupiter
-      try {
-        sunoAmount = await buyOnJupiter(solAmount);
-        
-        if (sunoAmount > 0) {
-          console.log(`✅ Jupiter purchase complete! ${sunoAmount.toLocaleString()} SUNO now in treasury`);
-          console.log(`🔄 ===================================\n`);
-          return sunoAmount;
-        }
-      } catch (jupiterError) {
-        console.error(`❌ Jupiter also failed: ${jupiterError.message}`);
-        throw new Error(`Both PumpPortal and Jupiter failed. PumpPortal: ${pumpError.message}, Jupiter: ${jupiterError.message}`);
-      }
-    }
+    // Use PumpPortal API with auto pool detection (handles pump.fun AND graduated tokens)
+    console.log("🚀 Using PumpPortal API with auto pool detection...");
+    sunoAmount = await buyOnPumpFun(solAmount);
     
-    throw new Error('Purchase returned 0 tokens from all methods');
+    console.log(`✅ Purchase complete! ${sunoAmount.toLocaleString()} SUNO now in treasury`);
+    console.log(`🔄 ===================================\n`);
+    return sunoAmount;
     
   } catch (err) {
-    console.error(`❌ Market buy failed completely: ${err.message}`);
+    console.error(`❌ Market buy failed: ${err.message}`);
     console.error(err.stack);
     throw err;
   }
@@ -1512,7 +1465,7 @@ bot.on("callback_query", async (q) => {
         await bot.answerCallbackQuery(q.id, { text: "✅ Story mode selected!" });
         await bot.sendMessage(
           userKey,
-          `📝 Share Your Story!\n\n✍️ Tell us why you need funds (max ${MAX_STORY_LENGTH} characters, about 3 sentences).\n\nType your story and hit send!\n\n⏱️ You have ${Math.ceil(PAYMENT_TIMEOUT / 60000)} minutes to submit and pay.`
+          `� Share Your Story!\n\n✍️ Tell us why you need funds (max ${MAX_STORY_LENGTH} characters, about 3 sentences).\n\nType your story and hit send!\n\n⏱️ You have ${Math.ceil(PAYMENT_TIMEOUT / 60000)} minutes to submit and pay.`
         );
 
       } else if (action === "vote") {
