@@ -1286,11 +1286,11 @@ bot.onText(/\/start|play/i, async (msg) => {
 
   await bot.sendMessage(
     userId,
-    `❤️ Welcome to GoFundMe!\n\n💰 Prize Pool: ${treasurySUNO.toLocaleString()} SUNO\n� Bonus Prize: +${treasuryBonus.toLocaleString()} SUNO (1/500)${timeMessage}\n\n🎯 Choose your path:`,
+    `❤️ Welcome to GoFundMe!\n\n💰 Prize Pool: ${treasurySUNO.toLocaleString()} SUNO\n🎰 Bonus Prize: +${treasuryBonus.toLocaleString()} SUNO (1/500)${timeMessage}\n\n📍 Join our channel: https://t.me/${CHANNEL}\n\n🎯 Choose your path:`,
     {
       reply_markup: {
         inline_keyboard: [
-          [{ text: "� Share Your Need & Get Help", callback_data: `start_story_${userId}` }],
+          [{ text: "💸 Share Your Need & Get Help", callback_data: `start_story_${userId}` }],
           [{ text: "❤️ Vote to Help Others & Earn", callback_data: `start_vote_${userId}` }]
         ]
       }
