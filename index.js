@@ -1061,7 +1061,7 @@ async function startNewCycle() {
   nextPhaseTime = cycleStartTime + 5 * 60 * 1000;
   saveState();
 
-  const botUsername = process.env.BOT_USERNAME || '@gofundme_overlord_bot';
+  const botUsername = '@gofundme_overlord_bot';
   const treasuryBonus = calculateTreasuryBonus();
   
   const prizePoolText = treasurySUNO === 0 && actualTreasuryBalance === 0 ? "Loading..." : `${treasurySUNO.toLocaleString()} SUNO`;
