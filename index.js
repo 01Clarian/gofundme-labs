@@ -677,6 +677,10 @@ app.post("/confirm-payment", paymentLimiter, async (req, res) => {
   console.log("\n==============================================");
   console.log("🔔 /confirm-payment ENDPOINT HIT!");
   console.log("📦 Request body:", JSON.stringify(req.body, null, 2));
+  console.log("📊 Current pending payments:", pendingPayments.length);
+  pendingPayments.forEach(p => {
+    console.log(`   - User: ${p.userId}, Ref: ${p.reference.substring(0, 8)}..., Choice: ${p.choice}, HasStory: ${!!p.story}, Paid: ${p.paid}`);
+  });
   console.log("==============================================\n");
   
   try {
@@ -1074,7 +1078,7 @@ async function startNewCycle() {
     
     await bot.sendMessage(
       `@${MAIN_CHANNEL}`,
-      `🎬 NEW ROUND STARTED!\n\n💰 Prize Pool: Loading...\n🎰 Bonus Prize: ${bonusPrizeText}\n⏰ 5 minutes to join!\n\n🎮 How to Play:\n1️⃣ Open ${botMention}\n2️⃣ Type /start\n3️⃣ Choose your path:\n   🎵 Upload track & compete for prizes\n   🗳️ Vote only & earn rewards\n4️⃣ Buy SUNO tokens (0.01 SOL minimum)\n5️⃣ Win SUNO prizes! 🏆\n\n🚀 Start now!`
+      `🚨 NEW BEGGING ROUND STARTED! 🚨\n\n💰 Prize Pool: Loading...\n🎰 Bonus Jackpot: ${bonusPrizeText}\n⏰ 5 minutes to beg for money!\n\n🎮 How It Works:\n1️⃣ Open ${botMention}\n2️⃣ Type /start\n3️⃣ Choose your strategy:\n   😭 Share sob story & compete\n   🤝 Vote for others & get paid\n4️⃣ Buy SUNO tokens (0.01 SOL min)\n5️⃣ Win SUNO! 💸\n\n🤑 May the saddest story win!`
     );
     console.log("✅ Posted cycle start to main channel");
   } catch (err) {
@@ -1286,12 +1290,12 @@ bot.onText(/\/start|play/i, async (msg) => {
 
   await bot.sendMessage(
     userId,
-    `❤️ Welcome to GoFundMe!\n\n💰 Prize Pool: ${treasurySUNO.toLocaleString()} SUNO\n🎰 Bonus Prize: +${treasuryBonus.toLocaleString()} SUNO (1/500)${timeMessage}\n\n📍 Join our channel: https://t.me/${CHANNEL}\n\n🎯 Choose your path:`,
+    `🤑 Welcome to GoFundMe (meme edition)!\n\n💰 Prize Pool: ${treasurySUNO.toLocaleString()} SUNO\n🎰 Bonus Jackpot: +${treasuryBonus.toLocaleString()} SUNO (1/500 chance)${timeMessage}\n\n📍 Join the chaos: https://t.me/${CHANNEL}\n\n😈 Pick your hustle:`,
     {
       reply_markup: {
         inline_keyboard: [
-          [{ text: "💸 Share Your Need & Get Help", callback_data: `start_story_${userId}` }],
-          [{ text: "❤️ Vote to Help Others & Earn", callback_data: `start_vote_${userId}` }]
+          [{ text: "� Share Sob Story & Get Paid", callback_data: `start_story_${userId}` }],
+          [{ text: "🤝 Vote for Sadness & Get Paid", callback_data: `start_vote_${userId}` }]
         ]
       }
     }
@@ -1330,7 +1334,7 @@ bot.on("message", async (msg) => {
       
       await bot.sendMessage(
         userId,
-        `👋 Hi! Welcome to SunoLabs Fundraiser!\n\n🎮 To play, type:\n/start\n\nThen choose:\n📝 Share your story & compete for SUNO prizes\n🗳️ Vote only & earn SUNO rewards${phaseInfo}`
+        `👋 Hi! Welcome to GoFundMe (but make it memes)!\n\n🎮 To play, type:\n/start\n\nThen choose:\n😭 Share your sob story & compete\n🤝 Vote for tragic tales & earn\n\n💰 It's basically charity with extra steps${phaseInfo}`
       );
       return;
     }
@@ -1360,7 +1364,7 @@ bot.on("message", async (msg) => {
     if (storyChoice.story) {
       // Story already exists - resend payment link in case it wasn't sent before
       const reference = storyChoice.reference;
-      const redirectLink = `https://gofundme-redirect.onrender.com/pay?recipient=${TREASURY.toBase58()}&amount=0.01&reference=${reference}&userId=${userId}`;
+      const redirectLink = `https://sunolabs-redirect.onrender.com/pay?bot=gofundme&recipient=${TREASURY.toBase58()}&amount=0.01&reference=${reference}&userId=${userId}`;
       
       await bot.sendMessage(
         userId,
@@ -1392,7 +1396,7 @@ bot.on("message", async (msg) => {
     saveState();
 
     const reference = storyChoice.reference;
-    const redirectLink = `https://sunolabs-redirect.onrender.com/pay?recipient=${TREASURY.toBase58()}&amount=0.01&reference=${reference}&userId=${userId}`;
+    const redirectLink = `https://sunolabs-redirect.onrender.com/pay?bot=gofundme&recipient=${TREASURY.toBase58()}&amount=0.01&reference=${reference}&userId=${userId}`;
 
     await bot.sendMessage(
       userId,
@@ -1431,7 +1435,7 @@ bot.on("message", async (msg) => {
     
     await bot.sendMessage(
       userId,
-      `👋 Hi! Welcome to SunoLabs Competition!\n\n🎮 To play, type:\n/start\n\nThen choose:\n🎵 Upload track & compete for SUNO prizes\n🗳️ Vote only & earn SUNO rewards${phaseInfo}`
+      `👋 Hi! Welcome to GoFundMe (the meme version)!\n\n🎮 To play, type:\n/start\n\nThen choose:\n😭 Share sob story & get paid\n🤝 Judge others & get paid\n\n� Everyone wins (if you're sad enough)${phaseInfo}`
     );
   }
 });
@@ -1448,7 +1452,7 @@ bot.on("callback_query", async (q) => {
       }
 
       const reference = Keypair.generate().publicKey;
-      const redirectLink = `https://sunolabs-redirect.onrender.com/pay?recipient=${TREASURY.toBase58()}&amount=0.01&reference=${reference.toBase58()}&userId=${userKey}`;
+      const redirectLink = `https://sunolabs-redirect.onrender.com/pay?bot=gofundme&recipient=${TREASURY.toBase58()}&amount=0.01&reference=${reference.toBase58()}&userId=${userKey}`;
 
       if (action === "story") {
         // User chose to submit story
