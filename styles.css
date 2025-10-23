@@ -111,10 +111,58 @@ body {
 .hero-subtitle {
     font-size: 20px;
     color: var(--text-muted);
+    margin-bottom: 32px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.token-ca-box {
+    background: rgba(74, 222, 128, 0.1);
+    border: 2px solid var(--primary);
+    border-radius: 12px;
+    padding: 24px;
     margin-bottom: 48px;
     max-width: 700px;
     margin-left: auto;
     margin-right: auto;
+}
+
+.ca-label {
+    font-size: 14px;
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.ca-value {
+    font-family: monospace;
+    font-size: 16px;
+    color: var(--text);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px;
+    border-radius: 8px;
+    word-break: break-all;
+    margin-bottom: 12px;
+}
+
+.ca-copy-btn {
+    background: var(--primary);
+    color: var(--dark);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.ca-copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 222, 128, 0.4);
 }
 
 .italic {

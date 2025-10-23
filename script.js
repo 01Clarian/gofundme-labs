@@ -153,3 +153,23 @@ document.querySelectorAll('.btn').forEach(btn => {
         // Add analytics here if needed
     });
 });
+
+// Copy CA function for the token contract address box
+function copyCA() {
+    const ca = 'CMuvfwFRM8W6vLSYYy2dF2jkc8zvjGF6pTkkyXEmpump';
+    navigator.clipboard.writeText(ca)
+        .then(() => {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Copied!';
+            btn.style.background = '#22c55e';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '';
+            }, 2000);
+        })
+        .catch(err => {
+            console.error('Failed to copy:', err);
+            alert('Failed to copy to clipboard');
+        });
+}
